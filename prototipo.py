@@ -1,5 +1,6 @@
 import cv2 as cv
 import numpy as np
+from tkinter import ttk
 from tkinter import *
 from tkinter import colorchooser
 from tkinter.filedialog import askopenfilename, asksaveasfile
@@ -120,6 +121,11 @@ def filtPix():
     imgRes = cv.resize(temp, (height, width), interpolation=cv.INTER_NEAREST)
     atualizaImagemPanel(imgRes)
 
+def filtCanny():
+    imgCopy = img.copy()
+    imgRes = cv.Canny(imgCopy, 200, 550)
+    atualizaImagemPanel(imgRes)
+
 def abrirArquivo():
     global img, imgCopy
     file_path = askopenfilename(filetypes=[('*jpeg', '*png')])
@@ -167,6 +173,7 @@ spin = Spinbox(bottomFrame, from_=0, to=255, command=filtBin, textvariable=spinV
 Button(bottomFrame, text="Vig", command=filtVig).pack(side="left", padx=5)
 Button(bottomFrame, text="LUV", command=filtLUV).pack(side="left", padx=5)
 Button(bottomFrame, text="Pix", command=filtPix).pack(side="left", padx=5)
+Button(bottomFrame, text="Canny", command=filtCanny).pack(side="left", padx=5)
 
 img = cv.imread('baboon.png') #original
 imgCopy = img.copy()
