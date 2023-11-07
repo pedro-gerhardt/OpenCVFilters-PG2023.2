@@ -120,22 +120,41 @@ def filtPix():
     imgRes = cv.resize(temp, (height, width), interpolation=cv.INTER_NEAREST)
     atualizaImagemPanel(imgRes)
 
-def abrirArquivo():
+def abreArquivo():
     global img, imgCopy
-    file_path = askopenfilename(filetypes=[('*jpeg', '*png')])
-    if file_path is not None:
-        img = cv.imread(file_path)
+    file_path = askopenfilename(filetypes=[('*jpeg', '*png')]).strip()
+    if file_path is not None and file_path != "":
+        img = cv.imread(file_path.strip())
         imgCopy = img.copy()
         atualizaImagemPanel(img)
     return
 
-def salvarArquivo():
+def salvaArquivo():
     img = ImageTk.getimage(imagePanel.image)
     filename = asksaveasfile(mode='wb', defaultextension='.png')
     if filename is None:
         return
     img.save(filename)
-        
+
+def sobrepoeImagem(x_offset, y_offset):
+    imgRes = img.copy()
+    imgCopy = stc.copy()
+    print(imgCopy.shape)
+    y1, y2 = int(y_offset - imgCopy.shape[0]/2), int(y_offset + imgCopy.shape[0]/2)
+    x1, x2 = int(x_offset - imgCopy.shape[1]/2), int(x_offset + imgCopy.shape[1]/2)
+    if y1 < 0: y1 = 0
+    if x1 < 0: x1 = 0
+    if y2 > imgCopy.shape[0]: y2 = imgCopy.shape[0]
+    if x2 > imgCopy.shape[1]: x2 = imgCopy.shape[1]
+    print(y1, y2, x1, x2)
+    alpha_s = imgCopy[:, :, 3] / 255.0 if imgCopy.shape[2] == 4 else 1.0
+    alpha_l = 1.0 - alpha_s
+
+    for c in range(0, 3):
+        imgRes[y1:y2, x1:x2, c] = (alpha_s * imgCopy[:, :, c] + alpha_l * imgRes[y1:y2, x1:x2, c])
+    
+    atualizaImagemPanel(imgRes)
+
 root = Tk()  # create parent window
 
 topFrame = Frame(root)
@@ -150,13 +169,11 @@ bottomFrame.pack(side=BOTTOM)
 mb = Menubutton(topFrame, text="Arquivo", relief=GROOVE)
 mb.menu = Menu(mb, tearoff=0)
 mb["menu"] = mb.menu
-mb.menu.add_checkbutton(label="Abrir", command=abrirArquivo)
-mb.menu.add_checkbutton(label="Salvar", command=salvarArquivo)
+mb.menu.add_checkbutton(label="Abrir", command=abreArquivo)
+mb.menu.add_checkbutton(label="Salvar", command=salvaArquivo)
 mb.pack(anchor="w")
 
 
-# Button(bottomFrame, text="Gray", command=filtro1).pack(side="left", padx=5)
-# Button(bottomFrame, text="LUV", command=filtro2).pack(side="left", padx=5)
 Button(bottomFrame, text="Verm", command=filtVerm).pack(side="left", padx=5)
 Button(bottomFrame, text="Pond", command=filtPond).pack(side="left", padx=5)
 Button(bottomFrame, text="Col Pic", command=filtCol).pack(side="left", padx=5)
@@ -169,10 +186,17 @@ Button(bottomFrame, text="LUV", command=filtLUV).pack(side="left", padx=5)
 Button(bottomFrame, text="Pix", command=filtPix).pack(side="left", padx=5)
 
 img = cv.imread('baboon.png') #original
+stc = cv.imread('circle.png') #original
 imgCopy = img.copy()
+
+def label_clicked(event):
+    print("Label clicked!")
+    print(event)
+    sobrepoeImagem(event.x, event.y)
 
 imgtk = cvToImg(imgCopy)
 imagePanel = Label(root, image=imgtk, bg="white", relief=SUNKEN)
 imagePanel.pack(side="top")
+imagePanel.bind("<Button-1>", label_clicked)
 
 root.mainloop()
