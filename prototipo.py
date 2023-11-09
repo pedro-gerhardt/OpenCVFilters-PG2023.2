@@ -144,14 +144,15 @@ def salvaArquivo():
 def sobrepoeImagem(x_offset, y_offset):
     imgRes = img.copy()
     imgCopy = stc.copy()
-    print(imgCopy.shape)
+
     y1, y2 = int(y_offset - imgCopy.shape[0]/2), int(y_offset + imgCopy.shape[0]/2)
     x1, x2 = int(x_offset - imgCopy.shape[1]/2), int(x_offset + imgCopy.shape[1]/2)
-    if y1 < 0: y1 = 0
-    if x1 < 0: x1 = 0
-    if y2 > imgCopy.shape[0]: y2 = imgCopy.shape[0]
-    if x2 > imgCopy.shape[1]: x2 = imgCopy.shape[1]
-    print(y1, y2, x1, x2)
+
+    if y1 < 0: y1 = 0; y2 = imgCopy.shape[0]
+    if x1 < 0: x1 = 0; x2 = imgCopy.shape[1]
+    if y2 > imgRes.shape[0]: y2 = imgRes.shape[0]; y1 = imgRes.shape[0] - imgCopy.shape[0]
+    if x2 > imgRes.shape[1]: x2 = imgRes.shape[1]; x1 = imgRes.shape[1] - imgCopy.shape[1]
+
     alpha_s = imgCopy[:, :, 3] / 255.0 if imgCopy.shape[2] == 4 else 1.0
     alpha_l = 1.0 - alpha_s
 
