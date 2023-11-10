@@ -1,0 +1,7 @@
+ * ao selecionar sticker, mudar o estado de seu botao
+ * enquanto nenhum sticker selecionado, nao colocar nada na tela
+ * poder acumular stickers, assim nao vai poder ser usada a original de base continuamente
+ * botão para restaurar imagem original, junto no menu de arquivos
+ - CORRIGIR: quando imagem preto e branco, ao adicionar um sticker, imagem volta a ser colorida
+ - colocar novos stickers
+ - adaptar para video

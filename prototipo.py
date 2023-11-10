@@ -14,10 +14,10 @@ def cvToImg(cvImg):
 
 def atualizaImagemPanel(imgRes):
     global imgCopy
+    imgCopy = imgRes
     newImg = cvToImg(imgRes)
     imagePanel.configure(image=newImg)
     imagePanel.image = newImg
-    imgCopy = newImg
 
 def filtVerm():
     imgCopy = img.copy()
@@ -141,42 +141,54 @@ def salvaArquivo():
         return
     img.save(filename)
 
+def restauraArquivo():
+    global imgCopy
+    imgCopy = img
+    atualizaImagemPanel(img)
+
 def sobrepoeImagem(x_offset, y_offset):
-    imgRes = img.copy()
-    imgCopy = stc.copy()
+    if stcAtual < 0:
+        return
+    imgRes = imgCopy.copy()
+    imgStc = stckCv[stcAtual].copy()
 
-    y1, y2 = int(y_offset - imgCopy.shape[0]/2), int(y_offset + imgCopy.shape[0]/2)
-    x1, x2 = int(x_offset - imgCopy.shape[1]/2), int(x_offset + imgCopy.shape[1]/2)
+    y1, y2 = int(y_offset - imgStc.shape[0]/2), int(y_offset + imgStc.shape[0]/2)
+    x1, x2 = int(x_offset - imgStc.shape[1]/2), int(x_offset + imgStc.shape[1]/2)
 
-    if y1 < 0: y1 = 0; y2 = imgCopy.shape[0]
-    if x1 < 0: x1 = 0; x2 = imgCopy.shape[1]
-    if y2 > imgRes.shape[0]: y2 = imgRes.shape[0]; y1 = imgRes.shape[0] - imgCopy.shape[0]
-    if x2 > imgRes.shape[1]: x2 = imgRes.shape[1]; x1 = imgRes.shape[1] - imgCopy.shape[1]
+    if y1 < 0: y1 = 0; y2 = imgStc.shape[0]
+    if x1 < 0: x1 = 0; x2 = imgStc.shape[1]
+    if y2 > imgRes.shape[0]: y2 = imgRes.shape[0]; y1 = imgRes.shape[0] - imgStc.shape[0]
+    if x2 > imgRes.shape[1]: x2 = imgRes.shape[1]; x1 = imgRes.shape[1] - imgStc.shape[1]
 
-    alpha_s = imgCopy[:, :, 3] / 255.0 if imgCopy.shape[2] == 4 else 1.0
+    alpha_s = imgStc[:, :, 3] / 255.0 if imgStc.shape[2] == 4 else 1.0
     alpha_l = 1.0 - alpha_s
 
     for c in range(0, 3):
-        imgRes[y1:y2, x1:x2, c] = (alpha_s * imgCopy[:, :, c] + alpha_l * imgRes[y1:y2, x1:x2, c])
+        imgRes[y1:y2, x1:x2, c] = (alpha_s * imgStc[:, :, c] + alpha_l * imgRes[y1:y2, x1:x2, c])
     
     atualizaImagemPanel(imgRes)
+
+def clicaImagem(event):
+    sobrepoeImagem(event.x, event.y)
+
 
 root = Tk()  # create parent window
 
 topFrame = Frame(root)
 topFrame.pack(side=TOP, fill=X)
 
-frame = Frame(root)
-frame.pack()
-
 bottomFrame = Frame(root)
 bottomFrame.pack(side=BOTTOM)
+
+rightFrame = Frame(root)
+rightFrame.pack(side=RIGHT)
 
 mb = Menubutton(topFrame, text="Arquivo", relief=GROOVE)
 mb.menu = Menu(mb, tearoff=0)
 mb["menu"] = mb.menu
 mb.menu.add_checkbutton(label="Abrir", command=abreArquivo)
 mb.menu.add_checkbutton(label="Salvar", command=salvaArquivo)
+mb.menu.add_checkbutton(label="Restaurar", command=restauraArquivo)
 mb.pack(anchor="w")
 
 
@@ -192,18 +204,30 @@ Button(bottomFrame, text="LUV", command=filtLUV).pack(side="left", padx=5)
 Button(bottomFrame, text="Pix", command=filtPix).pack(side="left", padx=5)
 Button(bottomFrame, text="Canny", command=filtCanny).pack(side="left", padx=5)
 
-img = cv.imread('baboon.png') #original
-stc = cv.imread('circle.png') #original
-imgCopy = img.copy()
 
-def label_clicked(event):
-    print("Label clicked!")
-    print(event)
-    sobrepoeImagem(event.x, event.y)
+def btnStickerSelecionado(numStc):
+    global stcAtual 
+    print(numStc)
+    stcAtual = numStc
+    for i in range(len(butStck)):
+        butStck[i].configure(relief=SUNKEN) if i == numStc else butStck[i].configure(relief=RAISED) 
+
+# stc = cv.imread('circle.png')
+stckCv = []; stckImg = []; butStck = []
+for i in range(5):
+    stckCv.append(cv.imread('alien' + str(i) + '.png'))
+    stckImg.append(cvToImg(stckCv[i]))
+    butStck.append(Button(rightFrame, image=stckImg[i], command=lambda itemp=i: btnStickerSelecionado(itemp)))
+    butStck[i].pack()
+
+img = cv.imread('baboon.png') 
+imgCopy = img.copy()
+stcAtual = -1
+
 
 imgtk = cvToImg(imgCopy)
 imagePanel = Label(root, image=imgtk, bg="white", relief=SUNKEN)
 imagePanel.pack(side="top")
-imagePanel.bind("<Button-1>", label_clicked)
+imagePanel.bind("<Button-1>", clicaImagem)
 
 root.mainloop()
