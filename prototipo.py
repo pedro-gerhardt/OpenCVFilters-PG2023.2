@@ -15,9 +15,16 @@ def cvToImg(cvImg):
 def atualizaImagemPanel(imgRes):
     global imgCopy
     imgCopy = imgRes
-    newImg = cvToImg(imgRes)
+    newImg = cvToImg(imgCopy)
     imagePanel.configure(image=newImg)
     imagePanel.image = newImg
+
+def atualizaFiltro(imgRes):
+    global imgCopy
+    imgCopy = imgRes
+    for sticker in stickers_pos:
+        imgCopy = sobrepoeImagem(sticker[0], sticker[1], sticker[2])
+    atualizaImagemPanel(imgCopy)
 
 def filtVerm():
     imgCopy = img.copy()
@@ -34,7 +41,7 @@ def filtVerm():
             imgRes.itemset((i,j,2),R) # canal R
 
     # grayImg = cv.cvtColor(imgRes, cv.COLOR_Luv2RGB) 
-    atualizaImagemPanel(imgRes)
+    atualizaFiltro(imgRes)
 
 def filtPond():
     imgCopy = img.copy()
@@ -47,7 +54,7 @@ def filtPond():
             imgRes.itemset((i,j,1),mediaPond) # canal G
             imgRes.itemset((i,j,2),mediaPond) # canal R
 
-    atualizaImagemPanel(imgRes)
+    atualizaFiltro(imgRes)
 
 def filtCol():
     imgCopy = img.copy()
@@ -65,7 +72,7 @@ def filtCol():
             imgRes.itemset((i,j,1),G) # canal G
             imgRes.itemset((i,j,2),R) # canal R
 
-    atualizaImagemPanel(imgRes)
+    atualizaFiltro(imgRes)
 
 def filtInv():
     imgCopy = img.copy()
@@ -77,7 +84,7 @@ def filtInv():
             imgRes.itemset((i,j,1),imgCopy.item(i,j,1)^255) # canal G
             imgRes.itemset((i,j,2),imgCopy.item(i,j,2)^255) # canal R
 
-    atualizaImagemPanel(imgRes)
+    atualizaFiltro(imgRes)
 
 def filtBin():
     imgCopy = img.copy()
@@ -92,7 +99,7 @@ def filtBin():
             else:
                 imgRes.itemset((i,j),255)
 
-    atualizaImagemPanel(imgRes)
+    atualizaFiltro(imgRes)
 
 def filtVig():
     imgCopy = img.copy()
@@ -104,26 +111,24 @@ def filtVig():
     mask = 255 * resultant_kernel / np.linalg.norm(resultant_kernel)   
     for i in range(3):
         imgRes[:,:,i] = imgRes[:,:,i] * mask
-    atualizaImagemPanel(imgRes)
+    atualizaFiltro(imgRes)
 
 def filtLUV():
     imgCopy = img.copy()
     grayImg = cv.cvtColor(imgCopy, cv.COLOR_Luv2RGB) 
-    newImg = cvToImg(grayImg)
-    imagePanel.configure(image=newImg)
-    imagePanel.image = newImg
+    atualizaFiltro(grayImg)
 
 def filtPix():
     imgCopy = imgRes = img.copy()
     height, width = imgCopy.shape[:2]
     temp = cv.resize(imgCopy, (16, 16))
     imgRes = cv.resize(temp, (height, width), interpolation=cv.INTER_NEAREST)
-    atualizaImagemPanel(imgRes)
+    atualizaFiltro(imgRes)
 
 def filtCanny():
     imgCopy = img.copy()
     imgRes = cv.Canny(imgCopy, 200, 550)
-    atualizaImagemPanel(imgRes)
+    atualizaFiltro(imgRes)
 
 def abreArquivo():
     global img, imgCopy
@@ -146,11 +151,19 @@ def restauraArquivo():
     imgCopy = img
     atualizaImagemPanel(img)
 
-def sobrepoeImagem(x_offset, y_offset):
-    if stcAtual < 0:
+def sobrepoeImagem(x_offset, y_offset, stcAtualParam = None):
+    global imgCopy
+    stcAtualParam = stcAtualParam or stcAtual
+
+    if stcAtualParam < 0:
         return
+
+    print("x_offset=",x_offset)
+    print("y_offset=",y_offset)
+    print("stcAtualParam=",stcAtualParam)   
+
     imgRes = imgCopy.copy()
-    imgStc = stckCv[stcAtual].copy()
+    imgStc = stckCv[stcAtualParam].copy()
 
     y1, y2 = int(y_offset - imgStc.shape[0]/2), int(y_offset + imgStc.shape[0]/2)
     x1, x2 = int(x_offset - imgStc.shape[1]/2), int(x_offset + imgStc.shape[1]/2)
@@ -163,15 +176,26 @@ def sobrepoeImagem(x_offset, y_offset):
     alpha_s = imgStc[:, :, 3] / 255.0 if imgStc.shape[2] == 4 else 1.0
     alpha_l = 1.0 - alpha_s
 
-    for c in range(0, 3):
-        imgRes[y1:y2, x1:x2, c] = (alpha_s * imgStc[:, :, c] + alpha_l * imgRes[y1:y2, x1:x2, c])
-    
-    atualizaImagemPanel(imgRes)
+    # se a img for colorida
+    if len(imgRes.shape) > 2:
+        for c in range(0, 3):
+            imgRes[y1:y2, x1:x2, c] = (alpha_s * imgStc[:, :, c] + alpha_l * imgRes[y1:y2, x1:x2, c])
+    else:
+        gray = cv.cvtColor(imgStc, cv.COLOR_BGR2GRAY)
+        imgRes[y1:y2, x1:x2] = (alpha_s * gray[:, :] + alpha_l * imgRes[y1:y2, x1:x2])
+
+    return imgRes
 
 def clicaImagem(event):
-    sobrepoeImagem(event.x, event.y)
+    if stcAtual == -1: return
+    global stickers_pos
+    stickers_pos.append((event.x, event.y, stcAtual))
+    print(stickers_pos) 
+    imgRes = sobrepoeImagem(event.x, event.y)
+    atualizaImagemPanel(imgRes)
 
 
+stickers_pos = []
 root = Tk()  # create parent window
 
 topFrame = Frame(root)
