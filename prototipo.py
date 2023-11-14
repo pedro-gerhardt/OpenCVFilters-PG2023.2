@@ -187,14 +187,21 @@ bottomFrame.pack(side=BOTTOM)
 rightFrame = Frame(root)
 rightFrame.pack(side=RIGHT)
 
-mb = Menubutton(topFrame, text="Arquivo", relief=GROOVE)
-mb.menu = Menu(mb, tearoff=0)
-mb["menu"] = mb.menu
-mb.menu.add_checkbutton(label="Abrir", command=abreArquivo)
-mb.menu.add_checkbutton(label="Salvar", command=salvaArquivo)
-mb.menu.add_checkbutton(label="Restaurar", command=restauraArquivo)
-mb.pack(anchor="w")
+arquivo = Menubutton(topFrame, text="Arquivo", relief=GROOVE)
+arquivo.menu = Menu(arquivo, tearoff=0)
+arquivo["menu"] = arquivo.menu
+arquivo.menu.add_checkbutton(label="Abrir", command=abreArquivo)
+arquivo.menu.add_checkbutton(label="Salvar", command=salvaArquivo)
+arquivo.menu.add_checkbutton(label="Restaurar", command=restauraArquivo)
+arquivo.grid(row=0, column=0)
 
+video = Menubutton(topFrame, text="Video", relief=GROOVE)
+video.menu = Menu(video, tearoff=0)
+video["menu"] = video.menu
+# video.menu.add_checkbutton(label="Abrir", command=abreArquivo)
+# video.menu.add_checkbutton(label="Salvar", command=salvaArquivo)
+# video.menu.add_checkbutton(label="Restaurar", command=restauraArquivo)
+video.grid(row=0, column=1)
 
 Button(bottomFrame, text="Verm", command=filtVerm).pack(side="left", padx=5)
 Button(bottomFrame, text="Pond", command=filtPond).pack(side="left", padx=5)
