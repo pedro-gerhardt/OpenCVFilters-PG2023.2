@@ -1,7 +1,21 @@
- * ao selecionar sticker, mudar o estado de seu botao
- * enquanto nenhum sticker selecionado, nao colocar nada na tela
- * poder acumular stickers, assim nao vai poder ser usada a original de base continuamente
- * botão para restaurar imagem original, junto no menu de arquivos
- - CORRIGIR: quando imagem preto e branco, ao adicionar um sticker, imagem volta a ser colorida
- - colocar novos stickers
- - adaptar para video
+a fazer:
+	* ao selecionar sticker, mudar o estado de seu botao
+	* enquanto nenhum sticker selecionado, nao colocar nada na tela
+	* poder acumular stickers, assim nao vai poder ser usada a original de base continuamente
+	* botão para restaurar imagem original, junto no menu de arquivos
+	* CORRIGIR: quando imagem preto e branco, ao adicionar um sticker, imagem volta a ser colorida
+	* ao tentar aplicar sticker em uma imagem filtrada por Canny ou Bin, seguinte erro detectado:
+	* ao tentar aplicar sticker em uma imagem filtrada por LUV, a imagem anterior volta a aparecer
+	* verificar se ao trocar de filtro, limpar stickers presentes 
+        -> resolução: sticker permanece, mas não aplicado filtro;
+        -> manter lista com posiçao e sobrepor esses stickers a cada novo filtro aplicado
+
+	- nos botões do arquivo, ao clicar não deixar selecionado com o checkzinho
+	- analisar possibilidade de acumular filtros aplicados
+	- testar stickers com transparencia
+	- colocar novos stickers
+	- adaptar para video
+	- definir tamanho minimo p/ imagem e validar na hora de subir
+	- iniciar aplicacao sem nenhuma imagem carregada, mas com a tela montada (filtros abaixo, stickers ao lado)
+	- inserir 10 filtros no total (atualmente há 9)
+    - no filtro ponderado, fazer ter dois canais
