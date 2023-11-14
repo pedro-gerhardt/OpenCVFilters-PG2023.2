@@ -6,6 +6,7 @@ from tkinter import colorchooser
 from tkinter.filedialog import askopenfilename, asksaveasfile
 from PIL import Image, ImageTk
 
+
 def cvToImg(cvImg):
     color_coverted = cv.cvtColor(cvImg, cv.COLOR_BGR2RGB) 
     pil_image = Image.fromarray(color_coverted) 
@@ -109,9 +110,7 @@ def filtVig():
 def filtLUV():
     imgCopy = img.copy()
     grayImg = cv.cvtColor(imgCopy, cv.COLOR_Luv2RGB) 
-    newImg = cvToImg(grayImg)
-    imagePanel.configure(image=newImg)
-    imagePanel.image = newImg
+    atualizaImagemPanel(grayImg)
 
 def filtPix():
     imgCopy = imgRes = img.copy()
@@ -163,8 +162,13 @@ def sobrepoeImagem(x_offset, y_offset):
     alpha_s = imgStc[:, :, 3] / 255.0 if imgStc.shape[2] == 4 else 1.0
     alpha_l = 1.0 - alpha_s
 
-    for c in range(0, 3):
-        imgRes[y1:y2, x1:x2, c] = (alpha_s * imgStc[:, :, c] + alpha_l * imgRes[y1:y2, x1:x2, c])
+    # se a img for colorida
+    if len(imgRes.shape) > 2:
+        for c in range(0, 3):
+            imgRes[y1:y2, x1:x2, c] = (alpha_s * imgStc[:, :, c] + alpha_l * imgRes[y1:y2, x1:x2, c])
+    else:
+        gray = cv.cvtColor(imgStc, cv.COLOR_BGR2GRAY)
+        imgRes[y1:y2, x1:x2] = (alpha_s * gray[:, :] + alpha_l * imgRes[y1:y2, x1:x2])
     
     atualizaImagemPanel(imgRes)
 
