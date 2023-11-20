@@ -10,12 +10,20 @@ a fazer:
         -> resolução: sticker permanece, mas não aplicado filtro;
         -> manter lista com posiçao e sobrepor esses stickers a cada novo filtro aplicado
 
+	pa
 	- nos botões do arquivo, ao clicar não deixar selecionado com o checkzinho
-	- analisar possibilidade de acumular filtros aplicados
+	- adaptar para webcam
+
+	mu
 	- testar stickers com transparencia
 	- colocar novos stickers
-	- adaptar para video
+
+	td
 	- definir tamanho minimo p/ imagem e validar na hora de subir
 	- iniciar aplicacao sem nenhuma imagem carregada, mas com a tela montada (filtros abaixo, stickers ao lado)
+
+	pe
 	- inserir 10 filtros no total (atualmente há 9)
     - no filtro ponderado, fazer ter dois canais
+
+	+ analisar possibilidade de acumular filtros aplicados
