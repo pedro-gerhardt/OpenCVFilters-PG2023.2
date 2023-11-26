@@ -4,6 +4,7 @@ from tkinter import ttk
 from tkinter import *
 from tkinter import colorchooser
 from tkinter.filedialog import askopenfilename, asksaveasfile
+from tkinter.messagebox import showinfo
 from PIL import Image, ImageTk
 
 def cvToImg(cvImg):
@@ -26,6 +27,8 @@ def atualizaFiltro(imgRes):
         imgCopy = sobrepoeImagem(sticker[0], sticker[1], sticker[2])
     atualizaImagemPanel(imgCopy)
 
+
+
 def filtVerm():
     imgCopy = img.copy()
     imgRes = img.copy()
@@ -45,16 +48,14 @@ def filtVerm():
 
 def filtPond():
     imgCopy = img.copy()
-    imgRes = img.copy()
-    
+    imgD2 = np.zeros((imgCopy.shape[0], imgCopy.shape[1]), np.uint8)
+
     for i in range(imgCopy.shape[0]): #percorre linhas
         for j in range(imgCopy.shape[1]): #percorre colunas
             mediaPond = imgCopy.item(i,j,0) * 0.07 + imgCopy.item(i,j,1) * 0.71 + imgCopy.item(i,j,2) * 0.21
-            imgRes.itemset((i,j,0),mediaPond) # canal B
-            imgRes.itemset((i,j,1),mediaPond) # canal G
-            imgRes.itemset((i,j,2),mediaPond) # canal R
+            imgD2[i,j] = int(mediaPond)
 
-    atualizaFiltro(imgRes)
+    atualizaFiltro(imgD2)
 
 def filtCol():
     imgCopy = img.copy()
@@ -91,7 +92,6 @@ def filtBin():
     imgGray = cv.cvtColor(imgCopy, cv.COLOR_BGR2GRAY)
     imgRes = imgGray.copy()
     k = spinVar.get()
-    print(k)
     for i in range(imgGray.shape[0]): #percorre linhas
         for j in range(imgGray.shape[1]): #percorre colunas
             if imgGray.item(i,j) < k:
@@ -130,12 +130,23 @@ def filtCanny():
     imgRes = cv.Canny(imgCopy, 200, 550)
     atualizaFiltro(imgRes)
 
+def filtBlur(intBlur):
+    if intBlur == 0: return
+    imgCopy = imgRes = img.copy()
+    imgRes = cv.blur(imgCopy, (int(intBlur), int(intBlur)))
+    atualizaFiltro(imgRes)
+
+
+
 def abreArquivo():
     global img, imgCopy
     file_path = askopenfilename(filetypes=[('*jpeg', '*png')]).strip()
     if file_path is not None and file_path != "":
         img = cv.imread(file_path.strip())
+        if img.shape[0] < 100 or img.shape[1] < 100:
+            showinfo("Aviso", "A imagem carregada precisa ter largura e altura igual ou superior a 100 pixels."); return
         imgCopy = img.copy()
+        habilitaBotoesEStickers()
         atualizaImagemPanel(img)
     return
 
@@ -155,12 +166,7 @@ def sobrepoeImagem(x_offset, y_offset, stcAtualParam = None):
     global imgCopy
     stcAtualParam = stcAtualParam or stcAtual
 
-    if stcAtualParam < 0:
-        return
-
-    print("x_offset=",x_offset)
-    print("y_offset=",y_offset)
-    print("stcAtualParam=",stcAtualParam)   
+    if stcAtualParam < 0: return
 
     imgRes = imgCopy.copy()
     imgStc = stckCv[stcAtualParam].copy()
@@ -190,10 +196,22 @@ def clicaImagem(event):
     if stcAtual == -1: return
     global stickers_pos
     stickers_pos.append((event.x, event.y, stcAtual))
-    print(stickers_pos) 
     imgRes = sobrepoeImagem(event.x, event.y)
     atualizaImagemPanel(imgRes)
 
+def habilitaBotoesEStickers():
+    btnVerm["state"] = NORMAL
+    btnPond["state"] = NORMAL
+    btnColPic["state"] = NORMAL
+    btnInv["state"] = NORMAL
+    spBin["state"] = NORMAL
+    btnVig["state"] = NORMAL
+    btnLuv["state"] = NORMAL
+    btnPix["state"] = NORMAL
+    btnCan["state"] = NORMAL
+    btnBlu["state"] = NORMAL
+    for s in butStck:
+        s["state"] = NORMAL
 
 stickers_pos = []
 root = Tk()  # create parent window
@@ -223,41 +241,54 @@ video["menu"] = video.menu
 # video.menu.add_checkbutton(label="Restaurar", command=restauraArquivo)
 video.grid(row=0, column=1)
 
-Button(bottomFrame, text="Verm", command=filtVerm).pack(side="left", padx=5)
-Button(bottomFrame, text="Pond", command=filtPond).pack(side="left", padx=5)
-Button(bottomFrame, text="Col Pic", command=filtCol).pack(side="left", padx=5)
-Button(bottomFrame, text="Inv", command=filtInv).pack(side="left", padx=5)
+btnVerm = Button(bottomFrame, text="Verm", command=filtVerm, state=DISABLED)
+btnVerm.pack(side="left", padx=5)
+
+btnPond = Button(bottomFrame, text="Pond", command=filtPond, state=DISABLED)
+btnPond.pack(side="left", padx=5)
+
+btnColPic = Button(bottomFrame, text="Col Pic", command=filtCol, state=DISABLED)
+btnColPic.pack(side="left", padx=5)
+
+btnInv = Button(bottomFrame, text="Inv", command=filtInv, state=DISABLED)
+btnInv.pack(side="left", padx=5)
+
 Label(bottomFrame, text="Bin").pack(side="left")
 spinVar = IntVar()
-spin = Spinbox(bottomFrame, from_=0, to=255, command=filtBin, textvariable=spinVar, width=5).pack(side="left", padx=5)
-Button(bottomFrame, text="Vig", command=filtVig).pack(side="left", padx=5)
-Button(bottomFrame, text="LUV", command=filtLUV).pack(side="left", padx=5)
-Button(bottomFrame, text="Pix", command=filtPix).pack(side="left", padx=5)
-Button(bottomFrame, text="Canny", command=filtCanny).pack(side="left", padx=5)
+spBin = Spinbox(bottomFrame, from_=0, to=255, command=filtBin, textvariable=spinVar, width=5, state=DISABLED)
+spBin.pack(side="left", padx=5)
 
+btnVig = Button(bottomFrame, text="Vig", command=filtVig, state=DISABLED)
+btnVig.pack(side="left", padx=5)
+
+btnLuv = Button(bottomFrame, text="LUV", command=filtLUV, state=DISABLED)
+btnLuv.pack(side="left", padx=5)
+
+btnPix = Button(bottomFrame, text="Pix", command=filtPix, state=DISABLED)
+btnPix.pack(side="left", padx=5)
+
+btnCan = Button(bottomFrame, text="Canny", command=filtCanny, state=DISABLED)
+btnCan.pack(side="left", padx=5)
+
+Label(bottomFrame, text="Blur").pack(side="left")
+btnBlu = Scale(bottomFrame, from_=0, to=100, command=filtBlur, state=DISABLED)
+btnBlu.pack(side="left")
 
 def btnStickerSelecionado(numStc):
     global stcAtual 
-    print(numStc)
     stcAtual = numStc
     for i in range(len(butStck)):
         butStck[i].configure(relief=SUNKEN) if i == numStc else butStck[i].configure(relief=RAISED) 
 
-# stc = cv.imread('circle.png')
+stcAtual = -1
 stckCv = []; stckImg = []; butStck = []
 for i in range(5):
     stckCv.append(cv.imread('alien' + str(i) + '.png'))
     stckImg.append(cvToImg(stckCv[i]))
-    butStck.append(Button(rightFrame, image=stckImg[i], command=lambda itemp=i: btnStickerSelecionado(itemp)))
+    butStck.append(Button(rightFrame, image=stckImg[i], state=DISABLED, command=lambda itemp=i: btnStickerSelecionado(itemp)))
     butStck[i].pack()
 
-img = cv.imread('baboon.png') 
-imgCopy = img.copy()
-stcAtual = -1
-
-
-imgtk = cvToImg(imgCopy)
-imagePanel = Label(root, image=imgtk, bg="white", relief=SUNKEN)
+imagePanel = Label(root, relief="sunken", image=PhotoImage())
 imagePanel.pack(side="top")
 imagePanel.bind("<Button-1>", clicaImagem)
 
