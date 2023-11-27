@@ -15,8 +15,8 @@ a fazer:
 	- adaptar para webcam
 
 	mu
-	- testar stickers com transparencia
-	- colocar novos stickers
+	* testar stickers com transparencia
+	* colocar novos stickers
 
 	pe
 	* inserir 10 filtros no total (atualmente há 9)
