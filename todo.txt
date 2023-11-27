@@ -17,11 +17,10 @@ a fazer:
 	mu
 	* testar stickers com transparencia
 	* colocar novos stickers
+	* analisar possibilidade de acumular filtros aplicados (adicionado botao para stackar filtros)
 
 	pe
 	* inserir 10 filtros no total (atualmente há 9)
     * no filtro ponderado, fazer ter dois canais
 	* definir tamanho minimo p/ imagem e validar na hora de subir
 	* iniciar aplicacao sem nenhuma imagem carregada, mas com a tela montada (filtros abaixo, stickers ao lado)
-
-	+ analisar possibilidade de acumular filtros aplicados

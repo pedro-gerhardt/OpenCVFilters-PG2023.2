@@ -14,8 +14,11 @@ def cvToImg(cvImg):
     return imgtk
 
 def atualizaImagemPanel(imgRes):
-    global imgCopy
+    global img, imgCopy, filterStacking
     imgCopy = imgRes
+
+    if filterStacking == True:
+        img = imgRes
     newImg = cvToImg(imgCopy)
     imagePanel.configure(image=newImg)
     imagePanel.image = newImg
@@ -26,8 +29,6 @@ def atualizaFiltro(imgRes):
     for sticker in stickers_pos:
         imgCopy = sobrepoeImagem(sticker[0], sticker[1], sticker[2])
     atualizaImagemPanel(imgCopy)
-
-
 
 def filtVerm():
     imgCopy = img.copy()
@@ -213,6 +214,16 @@ def habilitaBotoesEStickers():
     for s in butStck:
         s["state"] = NORMAL
 
+def toggle():
+    global filterStacking
+
+    if toggle_btn.config('relief')[-1] == 'sunken':
+        toggle_btn.config(relief="raised")
+        filterStacking = False
+    else:
+        toggle_btn.config(relief="sunken")
+        filterStacking = True
+
 stickers_pos = []
 root = Tk()  # create parent window
 
@@ -273,6 +284,11 @@ btnCan.pack(side="left", padx=5)
 Label(bottomFrame, text="Blur").pack(side="left")
 btnBlu = Scale(bottomFrame, from_=0, to=100, command=filtBlur, state=DISABLED)
 btnBlu.pack(side="left")
+
+global filterStacking
+filterStacking = False
+toggle_btn = Button(text="Filter Stacking", width=12, relief="raised", command=toggle)
+toggle_btn.pack(side="left", padx=5)
 
 def btnStickerSelecionado(numStc):
     global stcAtual 
