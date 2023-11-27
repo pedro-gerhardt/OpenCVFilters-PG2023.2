@@ -19,9 +19,11 @@ def atualizaImagemPanel(imgRes):
 
     if filterStacking == True:
         img = imgRes
+
     newImg = cvToImg(imgCopy)
     imagePanel.configure(image=newImg)
     imagePanel.image = newImg
+    imagePanel.update()
 
 def atualizaFiltro(imgRes):
     global imgCopy
@@ -31,6 +33,8 @@ def atualizaFiltro(imgRes):
     atualizaImagemPanel(imgCopy)
 
 def filtVerm():
+    global filtroAtivo
+    filtroAtivo = 1
     imgCopy = img.copy()
     imgRes = img.copy()
     corModificadora = [0, 0, 255]
@@ -48,6 +52,8 @@ def filtVerm():
     atualizaFiltro(imgRes)
 
 def filtPond():
+    global filtroAtivo
+    filtroAtivo = 2
     imgCopy = img.copy()
     imgD2 = np.zeros((imgCopy.shape[0], imgCopy.shape[1]), np.uint8)
 
@@ -59,11 +65,14 @@ def filtPond():
     atualizaFiltro(imgD2)
 
 def filtCol():
+    global filtroAtivo, corModificadora
     imgCopy = img.copy()
     imgRes = img.copy()
-    
-    color_code = colorchooser.askcolor(title ="Color Picker")[0]
-    corModificadora = list(color_code)
+
+    if filtroAtivo != 3:
+        color_code = colorchooser.askcolor(title ="Color Picker")[0]
+        corModificadora = list(color_code)
+    filtroAtivo = 3
     
     for i in range(imgCopy.shape[0]): #percorre linhas
         for j in range(imgCopy.shape[1]): #percorre colunas
@@ -77,6 +86,8 @@ def filtCol():
     atualizaFiltro(imgRes)
 
 def filtInv():
+    global filtroAtivo
+    filtroAtivo = 4
     imgCopy = img.copy()
     imgRes = img.copy()
     
@@ -89,6 +100,8 @@ def filtInv():
     atualizaFiltro(imgRes)
 
 def filtBin():
+    global filtroAtivo
+    filtroAtivo = 5
     imgCopy = img.copy()
     imgGray = cv.cvtColor(imgCopy, cv.COLOR_BGR2GRAY)
     imgRes = imgGray.copy()
@@ -103,6 +116,8 @@ def filtBin():
     atualizaFiltro(imgRes)
 
 def filtVig():
+    global filtroAtivo
+    filtroAtivo = 6
     imgCopy = img.copy()
     imgRes = img.copy()
     rows, cols = imgCopy.shape[:2]
@@ -115,11 +130,15 @@ def filtVig():
     atualizaFiltro(imgRes)
 
 def filtLUV():
+    global filtroAtivo
+    filtroAtivo = 7
     imgCopy = img.copy()
     grayImg = cv.cvtColor(imgCopy, cv.COLOR_Luv2RGB) 
     atualizaFiltro(grayImg)
 
 def filtPix():
+    global filtroAtivo
+    filtroAtivo = 8
     imgCopy = imgRes = img.copy()
     height, width = imgCopy.shape[:2]
     temp = cv.resize(imgCopy, (16, 16))
@@ -127,20 +146,24 @@ def filtPix():
     atualizaFiltro(imgRes)
 
 def filtCanny():
+    global filtroAtivo
+    filtroAtivo = 9
     imgCopy = img.copy()
     imgRes = cv.Canny(imgCopy, 200, 550)
     atualizaFiltro(imgRes)
 
 def filtBlur(intBlur):
+    global filtroAtivo, valorIntBlur
+    filtroAtivo = 10
+    valorIntBlur = intBlur
     if intBlur == 0: return
     imgCopy = imgRes = img.copy()
     imgRes = cv.blur(imgCopy, (int(intBlur), int(intBlur)))
     atualizaFiltro(imgRes)
 
-
-
 def abreArquivo():
-    global img, imgCopy
+    global img, imgCopy, webcamAtivo
+    webcamAtivo = False
     file_path = askopenfilename(filetypes=[('*jpeg', '*png')]).strip()
     if file_path is not None and file_path != "":
         img = cv.imread(file_path.strip())
@@ -158,9 +181,65 @@ def salvaArquivo():
         return
     img.save(filename)
 
+def abreWebcam():
+    global webcamAtivo, img, filtroAtivo, valorIntBlur
+    webcamAtivo = True
+    filtroAtivo = 0
+    capture = cv.VideoCapture(0)
+    if not capture.isOpened():
+        print("Não foi possível abrir a webcam")
+        exit(0)
+    habilitaBotoesEStickers()
+    while webcamAtivo:
+        ret, img = capture.read()
+        if img is None:
+            print("Frame com problemas")
+            break
+        if not ret:
+            print("Falhou para obter o frame")
+            break
+        validaFiltrosAtivos()
+        if cv.waitKey(1) & 0xFF == ord('q'):
+            webcamAtivo = False
+            capture.release()
+            break
+
+def limpawebCam():
+    global filtroAtivo, img, stickers_pos
+    filtroAtivo = 0
+    stickers_pos = []
+    atualizaImagemPanel(img)
+
+def validaFiltrosAtivos():
+    global img, filtroAtivo
+    match filtroAtivo:
+        case 0:
+            atualizaFiltro(img)
+        case 1:
+            filtVerm()
+        case 2:
+            filtPond()
+        case 3:
+            filtCol()
+        case 4:
+            filtInv()
+        case 5:
+            filtBin()
+        case 6:
+            filtVig()
+        case 7:
+            filtLUV()
+        case 8:
+            filtPix()
+        case 9:
+            filtCanny()
+        case 10:
+            filtBlur(valorIntBlur)
+
 def restauraArquivo():
-    global imgCopy
+    global imgCopy, stickers_pos
     imgCopy = img
+    stickers_pos = []
     atualizaImagemPanel(img)
 
 def sobrepoeImagem(x_offset, y_offset, stcAtualParam = None):
@@ -239,17 +318,16 @@ rightFrame.pack(side=RIGHT)
 arquivo = Menubutton(topFrame, text="Arquivo", relief=GROOVE)
 arquivo.menu = Menu(arquivo, tearoff=0)
 arquivo["menu"] = arquivo.menu
-arquivo.menu.add_checkbutton(label="Abrir", command=abreArquivo)
-arquivo.menu.add_checkbutton(label="Salvar", command=salvaArquivo)
-arquivo.menu.add_checkbutton(label="Restaurar", command=restauraArquivo)
+arquivo.menu.add_command(label="Abrir", command=abreArquivo)
+arquivo.menu.add_command(label="Salvar", command=salvaArquivo)
+arquivo.menu.add_command(label="Restaurar", command=restauraArquivo)
 arquivo.grid(row=0, column=0)
 
 video = Menubutton(topFrame, text="Video", relief=GROOVE)
 video.menu = Menu(video, tearoff=0)
 video["menu"] = video.menu
-# video.menu.add_checkbutton(label="Abrir", command=abreArquivo)
-# video.menu.add_checkbutton(label="Salvar", command=salvaArquivo)
-# video.menu.add_checkbutton(label="Restaurar", command=restauraArquivo)
+video.menu.add_command(label="Webcam", command=abreWebcam)
+video.menu.add_command(label="Limpar Filtros", command=limpawebCam)
 video.grid(row=0, column=1)
 
 btnVerm = Button(bottomFrame, text="Verm", command=filtVerm, state=DISABLED)
@@ -282,7 +360,7 @@ btnCan = Button(bottomFrame, text="Canny", command=filtCanny, state=DISABLED)
 btnCan.pack(side="left", padx=5)
 
 Label(bottomFrame, text="Blur").pack(side="left")
-btnBlu = Scale(bottomFrame, from_=0, to=100, command=filtBlur, state=DISABLED)
+btnBlu = Scale(bottomFrame, from_=1, to=100, command=filtBlur, state=DISABLED)
 btnBlu.pack(side="left")
 
 global filterStacking

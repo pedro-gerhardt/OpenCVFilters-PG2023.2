@@ -11,8 +11,8 @@ a fazer:
         -> manter lista com posiçao e sobrepor esses stickers a cada novo filtro aplicado
 
 	pa
-	- nos botões do arquivo, ao clicar não deixar selecionado com o checkzinho
-	- adaptar para webcam
+	* nos botões do arquivo, ao clicar não deixar selecionado com o checkzinho
+	* adaptar para webcam
 
 	mu
 	* testar stickers com transparencia
