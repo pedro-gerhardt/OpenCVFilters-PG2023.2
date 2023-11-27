@@ -283,7 +283,7 @@ def btnStickerSelecionado(numStc):
 stcAtual = -1
 stckCv = []; stckImg = []; butStck = []
 for i in range(5):
-    stckCv.append(cv.imread('alien' + str(i) + '.png'))
+    stckCv.append(cv.imread('sticker' + str(i) + '.png', cv.IMREAD_UNCHANGED))
     stckImg.append(cvToImg(stckCv[i]))
     butStck.append(Button(rightFrame, image=stckImg[i], state=DISABLED, command=lambda itemp=i: btnStickerSelecionado(itemp)))
     butStck[i].pack()
