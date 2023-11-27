@@ -162,14 +162,15 @@ def filtBlur(intBlur):
     atualizaFiltro(imgRes)
 
 def abreArquivo():
-    global img, imgCopy, webcamAtivo
+    global img, imgCopy, webcamAtivo, imgOrig
     webcamAtivo = False
     file_path = askopenfilename(filetypes=[('*jpeg', '*png')]).strip()
     if file_path is not None and file_path != "":
         img = cv.imread(file_path.strip())
         if img.shape[0] < 100 or img.shape[1] < 100:
-            showinfo("Aviso", "A imagem carregada precisa ter largura e altura igual ou superior a 100 pixels."); return
+            showinfo("Aviso", "A imagem carregada precisa ter largura e altura igual ou superior a 100 pixels."); img = None; return
         imgCopy = img.copy()
+        imgOrig = img.copy()
         habilitaBotoesEStickers()
         atualizaImagemPanel(img)
     return
@@ -237,8 +238,8 @@ def validaFiltrosAtivos():
             filtBlur(valorIntBlur)
 
 def restauraArquivo():
-    global imgCopy, stickers_pos
-    imgCopy = img
+    global imgCopy, img, stickers_pos, imgOrig
+    img = imgCopy = imgOrig.copy()
     stickers_pos = []
     atualizaImagemPanel(img)
 
@@ -280,16 +281,8 @@ def clicaImagem(event):
     atualizaImagemPanel(imgRes)
 
 def habilitaBotoesEStickers():
-    btnVerm["state"] = NORMAL
-    btnPond["state"] = NORMAL
-    btnColPic["state"] = NORMAL
-    btnInv["state"] = NORMAL
-    spBin["state"] = NORMAL
-    btnVig["state"] = NORMAL
-    btnLuv["state"] = NORMAL
-    btnPix["state"] = NORMAL
-    btnCan["state"] = NORMAL
-    btnBlu["state"] = NORMAL
+    btnVerm["state"] = btnPond["state"] = btnColPic["state"] = btnInv["state"] = spBin["state"] = btnVig["state"] = NORMAL
+    btnLuv["state"] = btnPix["state"] = btnCan["state"] = btnBlu["state"] = NORMAL
     for s in butStck:
         s["state"] = NORMAL
 
